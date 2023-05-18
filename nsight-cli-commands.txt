@@ -1,1 +1,9 @@
+
+# Nsight Compute:
 sudo /usr/local/cuda/bin/ncu --metrics sm__warps_active.avg.pct_of_peak_sustained_active --kernel-name regex:.*sgemm_32.* ./main.py
+--list-section
+
+# Nsight System:
+sudo nsys profile -t cuda,nvtx --force-overwrite=true --stats=true -o /home/ai/enes/sample.qdrep /home/ai/enes/GCN-CUDA-Characterization/main.py
+sudo nsys stats -f column --output /home/ai/enes/sample_stat /home/ai/enes/sample.sqlite
+cat sample_stat_cuda_gpu_kern_sum.txt
