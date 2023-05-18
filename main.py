@@ -110,7 +110,6 @@ def main(args):
     criterion = CrossEntropyLoss()
 
     # Train
-    cupy.cuda.profiler.start()
     print("Training starts...")
     for epoch in range(NUM_EPOCH):
         start = time.perf_counter()
@@ -119,9 +118,8 @@ def main(args):
 
         stop = time.perf_counter()
 
-        print("### Epoch:", epoch, "loss:", round(loss.item(), 4), "time:", get_minutes(stop - start))
+        print("### Epoch:", epoch, "loss:", round(loss.item(), 4), "time:", get_minutes(stop - start)) # type: ignore
     
-    cupy.cuda.profiler.start()
 
 
 if __name__ == "__main__":
