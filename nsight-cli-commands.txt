@@ -1,8 +1,10 @@
-# Nsight Compute:
+# Example commands
+
+## Nsight Compute:
 sudo /usr/local/cuda/bin/ncu --metrics sm__warps_active.avg.pct_of_peak_sustained_active --kernel-name regex:.*sgemm_32.* ./main.py
 ncu --list-section
 
-# Nsight System:
+## Nsight System:
 
 sudo nsys profile -t cuda,nvtx --force-overwrite=true --stats=true -o /home/ai/enes/sample.qdrep /home/ai/enes/GCN-CUDA-Characterization/main.py
 

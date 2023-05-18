@@ -51,25 +51,25 @@ def train_one_epoch(
     for dataBatch in loader:
         optimizer.zero_grad()
 
-        rng = nvtx.start_range(message="copyToGPU", color="blue")
+        # rng = nvtx.start_range(message="copyToGPU", color="blue")
         dataBatch = dataBatch.to(device)
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
 
-        rng = nvtx.start_range(message="model", color="blue")
+        # rng = nvtx.start_range(message="model", color="blue")
         pred = model(dataBatch.x, dataBatch.edge_index, dataBatch.batch)
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
 
-        rng = nvtx.start_range(message="loss", color="blue")
+        # rng = nvtx.start_range(message="loss", color="blue")
         loss = criterion(pred, dataBatch.y[:, 0])
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
 
-        rng = nvtx.start_range(message="backward", color="blue")
+        # rng = nvtx.start_range(message="backward", color="blue")
         loss.backward()
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
 
-        rng = nvtx.start_range(message="update", color="blue")
+        # rng = nvtx.start_range(message="update", color="blue")
         optimizer.step()
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
     
     return loss
 

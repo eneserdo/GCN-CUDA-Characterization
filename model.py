@@ -245,13 +245,13 @@ class GCN_Model(torch.nn.Module):
         
         h=self.conv(x, edge_index)
         
-        rng = nvtx.start_range(message="Activation", color="green")
+        # rng = nvtx.start_range(message="Activation", color="green")
         h=self.act(h)
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
         
-        rng = nvtx.start_range(message="Pooling", color="green")
+        # rng = nvtx.start_range(message="Pooling", color="green")
         pred=global_mean_pool(h, batch)
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
         
         return pred 
 
