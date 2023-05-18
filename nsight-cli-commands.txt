@@ -1,0 +1,1 @@
+sudo /usr/local/cuda/bin/ncu --metrics sm__warps_active.avg.pct_of_peak_sustained_active --kernel-name regex:.*sgemm_32.* ./main.py
