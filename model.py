@@ -1,10 +1,12 @@
 ### I copied the source code of GCN layer and inserted nvtx ranges 
 from typing import Optional, Tuple
 
+from contextlib import nullcontext
+
 # import nvtx
 
 import torch
-import torch.autograd.profiler as profiler
+from torch.profiler import profile, record_function, ProfilerActivity
 from torch import Tensor
 from torch.nn import Parameter
 
@@ -163,6 +165,7 @@ class GCNConv(MessagePassing):
             self.register_parameter('bias', None)
 
         self.reset_parameters()
+        self._Profiler_ContextManager=None
 
 
     def reset_parameters(self):
@@ -172,53 +175,51 @@ class GCNConv(MessagePassing):
         self._cached_adj_t = None
 
 
+    # def _activate_profiler(self):
+    #     self.contextManager=nullcontext
 
     def forward(self, x: Tensor, edge_index: Adj,
                 edge_weight: OptTensor = None) -> Tensor:
-        """"""
+        
+        
+        with record_function("Normalize"):
+            torch.cuda.nvtx.range_push("Normalize")
+            if self.normalize:
+                if isinstance(edge_index, Tensor):
+                    cache = self._cached_edge_index
+                    if cache is None:
+                        edge_index, edge_weight = gcn_norm(  # yapf: disable
+                            edge_index, edge_weight, x.size(self.node_dim),
+                            self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
+                        if self.cached:
+                            self._cached_edge_index = (edge_index, edge_weight)
+                    else:
+                        edge_index, edge_weight = cache[0], cache[1]
 
-        # rng = nvtx.start_range(message="Normalize", color="red")
-        torch.cuda.nvtx.range_push("Normalize")
+                elif isinstance(edge_index, SparseTensor):
+                    cache = self._cached_adj_t
+                    if cache is None:
+                        edge_index = gcn_norm(  # yapf: disable
+                            edge_index, edge_weight, x.size(self.node_dim),
+                            self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
+                        if self.cached:
+                            self._cached_adj_t = edge_index # type: ignore
+                    else:
+                        edge_index = cache
 
-        if self.normalize:
-            if isinstance(edge_index, Tensor):
-                cache = self._cached_edge_index
-                if cache is None:
-                    edge_index, edge_weight = gcn_norm(  # yapf: disable
-                        edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
-                    if self.cached:
-                        self._cached_edge_index = (edge_index, edge_weight)
-                else:
-                    edge_index, edge_weight = cache[0], cache[1]
+            torch.cuda.nvtx.range_pop()
 
-            elif isinstance(edge_index, SparseTensor):
-                cache = self._cached_adj_t
-                if cache is None:
-                    edge_index = gcn_norm(  # yapf: disable
-                        edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
-                    if self.cached:
-                        self._cached_adj_t = edge_index # type: ignore
-                else:
-                    edge_index = cache
-
-        # nvtx.end_range(rng)
-        torch.cuda.nvtx.range_pop()
-
-        # rng = nvtx.start_range(message="Linear", color="red")
-        torch.cuda.nvtx.range_push("Linear")
-        x = self.lin(x)
-        torch.cuda.nvtx.range_pop()
-        # nvtx.end_range(rng)
+        with record_function("Linear"):
+            torch.cuda.nvtx.range_push("Linear")
+            x = self.lin(x)
+            torch.cuda.nvtx.range_pop()
 
         # propagate_type: (x: Tensor, edge_weight: OptTensor)
-        # rng = nvtx.start_range(message="Propagate", color="red")
-        torch.cuda.nvtx.range_push("Propagate")
-        out = self.propagate(edge_index, x=x, edge_weight=edge_weight,
-                             size=None)
-        torch.cuda.nvtx.range_pop()
-        # nvtx.end_range(rng)
+        with record_function("Propagate"):
+            torch.cuda.nvtx.range_push("Propagate")
+            out = self.propagate(edge_index, x=x, edge_weight=edge_weight,
+                                size=None)
+            torch.cuda.nvtx.range_pop()
 
         if self.bias is not None:
             out = out + self.bias

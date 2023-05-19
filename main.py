@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
+from torch.profiler import profile, record_function, ProfilerActivity
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 import torch_geometric as pyg
@@ -121,16 +122,20 @@ def main(args):
     criterion = CrossEntropyLoss()
 
     # Train
-    print("Training starts...")
+    print("Starts...")
     for epoch in range(NUM_EPOCH):
         start = time.perf_counter()
 
-        loss = train_one_epoch(model, loader, criterion, optimizer, device)
+        with profile(activities=[ProfilerActivity.CPU]) as prof:
+            loss = train_one_epoch(model, loader, criterion, optimizer, device)
 
         stop = time.perf_counter()
 
-        print("### Epoch:", epoch, "loss:", round(loss.item(), 4), "time:", get_minutes(stop - start)) # type: ignore
+        print("### Epoch:", epoch, "loss:", round(loss, 4), "time:", get_minutes(stop - start)) # type: ignore
+
     
+    print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
+    print("Done!")    
 
 
 if __name__ == "__main__":
