@@ -3,3 +3,6 @@ __pycache__/
 *.png
 *.prof
 deneme.sh
+*.sqlite
+*.nsys-rep
+*.csv
