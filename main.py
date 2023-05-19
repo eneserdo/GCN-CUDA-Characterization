@@ -8,7 +8,7 @@ import subprocess
 import time
 
 import numpy as np
-import nvtx
+# import nvtx
 import torch
 import torch.nn as nn
 
@@ -22,7 +22,7 @@ from model import GCN_Model
 from utils import get_minutes, get_random_graph, get_random_skewed_graph, save_graph_img
 
 NUM_EPOCH = 1
-NUM_BATCH = 4
+NUM_BATCH = 16
 NUM_NODES_TIMES_BATCH_SIZE = 2**16 # = num_nodes * batch_size. In every iteration this much data is loaded into memory
 NUM_CLASSES = 10
 NUM_FEAT = 128
@@ -48,6 +48,7 @@ def train_one_epoch(
     """ This was written as a separate function just for convenience during cpu profiling. """
 
     loss=0
+    i=0
     for dataBatch in loader:
         optimizer.zero_grad()
 
@@ -56,7 +57,7 @@ def train_one_epoch(
         # nvtx.end_range(rng)
 
         # rng = nvtx.start_range(message="model", color="blue")
-        pred = model(dataBatch.x, dataBatch.edge_index, dataBatch.batch)
+        pred = model(dataBatch.x, dataBatch.edge_index, dataBatch.batch, i)
         # nvtx.end_range(rng)
 
         # rng = nvtx.start_range(message="loss", color="blue")
@@ -70,6 +71,7 @@ def train_one_epoch(
         # rng = nvtx.start_range(message="update", color="blue")
         optimizer.step()
         # nvtx.end_range(rng)
+        i+=1
     
     return loss
 

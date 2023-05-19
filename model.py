@@ -1,7 +1,7 @@
 ### I copied the source code of GCN layer and inserted nvtx ranges 
 from typing import Optional, Tuple
 
-import nvtx
+# import nvtx
 
 import torch
 import torch.autograd.profiler as profiler
@@ -19,18 +19,19 @@ from torch_scatter import scatter_add
 from torch_sparse import SparseTensor, fill_diag, matmul, mul
 from torch_sparse import sum as sparsesum
 
+NUM_OF_WARMUP_ITER=5
 
 @torch.jit._overload
-def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False,
+def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False, # type: ignore
              add_self_loops=True, flow="source_to_target", dtype=None):
-    # type: (Tensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> PairTensor  # noqa
+    # type: ignore # type: (Tensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> PairTensor  # noqa
     pass
 
 
 @torch.jit._overload
-def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False,
+def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False, # type: ignore
              add_self_loops=True, flow="source_to_target", dtype=None):
-    # type: (SparseTensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> SparseTensor  # noqa
+    # type: ignore # type: (SparseTensor, OptTensor, Optional[int], bool, bool, str, Optional[int]) -> SparseTensor  # noqa
     pass
 
 
@@ -58,7 +59,7 @@ def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False,
         num_nodes = maybe_num_nodes(edge_index, num_nodes)
 
         if edge_weight is None:
-            edge_weight = torch.ones((edge_index.size(1), ), dtype=dtype,
+            edge_weight = torch.ones((edge_index.size(1), ), dtype=dtype, # type: ignore
                                      device=edge_index.device)
 
         if add_self_loops:
@@ -177,7 +178,8 @@ class GCNConv(MessagePassing):
                 edge_weight: OptTensor = None) -> Tensor:
         """"""
 
-        rng = nvtx.start_range(message="Normalize", color="red")
+        # rng = nvtx.start_range(message="Normalize", color="red")
+        torch.cuda.nvtx.range_push("Normalize")
 
         if self.normalize:
             if isinstance(edge_index, Tensor):
@@ -185,7 +187,7 @@ class GCNConv(MessagePassing):
                 if cache is None:
                     edge_index, edge_weight = gcn_norm(  # yapf: disable
                         edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow, x.dtype)
+                        self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
                     if self.cached:
                         self._cached_edge_index = (edge_index, edge_weight)
                 else:
@@ -196,23 +198,28 @@ class GCNConv(MessagePassing):
                 if cache is None:
                     edge_index = gcn_norm(  # yapf: disable
                         edge_index, edge_weight, x.size(self.node_dim),
-                        self.improved, self.add_self_loops, self.flow, x.dtype)
+                        self.improved, self.add_self_loops, self.flow, x.dtype) # type: ignore
                     if self.cached:
-                        self._cached_adj_t = edge_index
+                        self._cached_adj_t = edge_index # type: ignore
                 else:
                     edge_index = cache
 
-        nvtx.end_range(rng)
+        # nvtx.end_range(rng)
+        torch.cuda.nvtx.range_pop()
 
-        rng = nvtx.start_range(message="Linear", color="red")
+        # rng = nvtx.start_range(message="Linear", color="red")
+        torch.cuda.nvtx.range_push("Linear")
         x = self.lin(x)
-        nvtx.end_range(rng)
+        torch.cuda.nvtx.range_pop()
+        # nvtx.end_range(rng)
 
         # propagate_type: (x: Tensor, edge_weight: OptTensor)
-        rng = nvtx.start_range(message="Propagate", color="red")
+        # rng = nvtx.start_range(message="Propagate", color="red")
+        torch.cuda.nvtx.range_push("Propagate")
         out = self.propagate(edge_index, x=x, edge_weight=edge_weight,
                              size=None)
-        nvtx.end_range(rng)
+        torch.cuda.nvtx.range_pop()
+        # nvtx.end_range(rng)
 
         if self.bias is not None:
             out = out + self.bias
@@ -224,7 +231,7 @@ class GCNConv(MessagePassing):
         return x_j if edge_weight is None else edge_weight.view(-1, 1) * x_j
 
     def message_and_aggregate(self, adj_t: SparseTensor, x: Tensor) -> Tensor:
-        return matmul(adj_t, x, reduce=self.aggr)###
+        return matmul(adj_t, x, reduce=self.aggr) # type: ignore
 
 
 
@@ -241,10 +248,15 @@ class GCN_Model(torch.nn.Module):
         self.act = ReLU()
         
         
-    def forward(self, x, edge_index, batch):
+    def forward(self, x, edge_index, batch, i):
         
-        h=self.conv(x, edge_index)
-        
+        if i>NUM_OF_WARMUP_ITER:
+            torch.cuda.cudart().cudaProfilerStart() 
+            h=self.conv(x, edge_index)
+            torch.cuda.cudart().cudaProfilerStop()
+        else:
+            h=self.conv(x, edge_index)
+
         # rng = nvtx.start_range(message="Activation", color="green")
         h=self.act(h)
         # nvtx.end_range(rng)
