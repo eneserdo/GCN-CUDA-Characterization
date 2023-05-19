@@ -28,6 +28,8 @@ NUM_CLASSES = 10
 NUM_FEAT = 128
 # DATASET_LEN = NUM_BATCH*BATCH_SIZE (will be declared later)
 
+NUM_OF_WARMUP_ITER=5
+
 """
     # Effect of graph size:
         Training configs (Number of nodes, Batch size):
@@ -49,9 +51,14 @@ def train_one_epoch(
 
     loss=0
     i=0
+    
+        
     for dataBatch in loader:
-        optimizer.zero_grad()
+        # optimizer.zero_grad()
 
+        if i==NUM_OF_WARMUP_ITER:
+            torch.cuda.cudart().cudaProfilerStart() # type: ignore
+        
         # rng = nvtx.start_range(message="copyToGPU", color="blue")
         dataBatch = dataBatch.to(device)
         # nvtx.end_range(rng)
@@ -60,18 +67,20 @@ def train_one_epoch(
         pred = model(dataBatch.x, dataBatch.edge_index, dataBatch.batch, i)
         # nvtx.end_range(rng)
 
-        # rng = nvtx.start_range(message="loss", color="blue")
-        loss = criterion(pred, dataBatch.y[:, 0])
-        # nvtx.end_range(rng)
+        # # rng = nvtx.start_range(message="loss", color="blue")
+        # loss = criterion(pred, dataBatch.y[:, 0])
+        # # nvtx.end_range(rng)
 
-        # rng = nvtx.start_range(message="backward", color="blue")
-        loss.backward()
-        # nvtx.end_range(rng)
+        # # rng = nvtx.start_range(message="backward", color="blue")
+        # loss.backward()
+        # # nvtx.end_range(rng)
 
-        # rng = nvtx.start_range(message="update", color="blue")
-        optimizer.step()
-        # nvtx.end_range(rng)
+        # # rng = nvtx.start_range(message="update", color="blue")
+        # optimizer.step()
+        # # nvtx.end_range(rng)
         i+=1
+    
+    torch.cuda.cudart().cudaProfilerStop() # type: ignore
     
     return loss
 

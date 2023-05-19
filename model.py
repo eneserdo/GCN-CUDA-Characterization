@@ -19,7 +19,6 @@ from torch_scatter import scatter_add
 from torch_sparse import SparseTensor, fill_diag, matmul, mul
 from torch_sparse import sum as sparsesum
 
-NUM_OF_WARMUP_ITER=5
 
 @torch.jit._overload
 def gcn_norm(edge_index, edge_weight=None, num_nodes=None, improved=False, # type: ignore
@@ -250,22 +249,18 @@ class GCN_Model(torch.nn.Module):
         
     def forward(self, x, edge_index, batch, i):
         
-        if i>NUM_OF_WARMUP_ITER:
-            torch.cuda.cudart().cudaProfilerStart() 
-            h=self.conv(x, edge_index)
-            torch.cuda.cudart().cudaProfilerStop()
-        else:
-            h=self.conv(x, edge_index)
+
+        h=self.conv(x, edge_index)
 
         # rng = nvtx.start_range(message="Activation", color="green")
-        h=self.act(h)
+        # h=self.act(h)
         # nvtx.end_range(rng)
         
         # rng = nvtx.start_range(message="Pooling", color="green")
-        pred=global_mean_pool(h, batch)
+        # h=global_mean_pool(h, batch)
         # nvtx.end_range(rng)
         
-        return pred 
+        return h
 
 
     
