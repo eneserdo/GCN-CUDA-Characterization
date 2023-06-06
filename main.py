@@ -5,6 +5,7 @@ import argparse
 import cProfile
 import random
 import subprocess
+import sys
 import time
 
 import numpy as np
@@ -20,10 +21,10 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 from model import GCN_Model
-from utils import get_minutes, get_random_graph, get_random_skewed_graph, save_graph_img
+from utils import get_minutes, get_random_graph, get_random_skewed_graph, save_graph_img, save_node_degree_dist
 
 NUM_EPOCH = 1
-NUM_BATCH = 16
+NUM_BATCH = 15
 NUM_NODES_TIMES_BATCH_SIZE = 2**16 # = num_nodes * batch_size. In every iteration this much data is loaded into memory
 NUM_CLASSES = 10
 NUM_FEAT = 128
@@ -40,6 +41,7 @@ NUM_OF_WARMUP_ITER=5
         18384 - 4
 """
 
+print("python:", sys.executable)
 
 def train_one_epoch(
     model: GCN_Model,
@@ -108,11 +110,15 @@ def main(args):
     # Select function: skewed or not   
     get_graph = get_random_skewed_graph if args.skewed else get_random_graph
 
+    is_skewed="S_" if args.skewed else ""
+
     for i in range(DATASET_LEN):
         data = get_graph(args.num_nodes, args.sparsity, NUM_CLASSES, NUM_FEAT)
         dataset.append(data)
-        # if i==10:
-        #     save_graph_img(data, args.num_nodes)
+        if i==10:
+            save_graph_img(data, args.num_nodes, is_skewed+"node_degree_hist_N")
+            save_node_degree_dist(data, args.num_nodes, is_skewed+"graph_N")
+            print("Saved sample!")
 
     loader = DataLoader(dataset, batch_size, shuffle=False, num_workers=args.num_workers)  # worker_init_fn=seed_worker)
 
@@ -121,24 +127,28 @@ def main(args):
     optimizer = Adam(model.parameters(), lr=0.001)
     criterion = CrossEntropyLoss()
 
-    # Train
+    # Inference
     print("Starts...")
     for epoch in range(NUM_EPOCH):
         start = time.perf_counter()
 
-        with profile(activities=[ProfilerActivity.CPU]) as prof:
+        if args.use_cpu:
+            with profile(activities=[ProfilerActivity.CPU]) as prof:
+                loss = train_one_epoch(model, loader, criterion, optimizer, device)
+        else:
             loss = train_one_epoch(model, loader, criterion, optimizer, device)
-
+        
         stop = time.perf_counter()
 
         print("### Epoch:", epoch, "loss:", round(loss, 4), "time:", get_minutes(stop - start)) # type: ignore
 
-    
-    print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
+    if args.use_cpu:
+        print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
     print("Done!")    
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", "--num_nodes", type=int, default=2**4, help="...")
@@ -152,16 +162,17 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     print(args)
-    if args.cprofile:
-        # try:
-        #     cProfile.run("main(args)", "cProfile-output.prof")
-        # except:
-        #     print("ERROR!")
-        # finally:
-        #     subprocess.run("snakeviz cProfile-output.prof", shell=True)
+    # if args.cprofile:
+    #     # try:
+    #     #     cProfile.run("main(args)", "cProfile-output.prof")
+    #     # except:
+    #     #     print("ERROR!")
+    #     # finally:
+    #     #     subprocess.run("snakeviz cProfile-output.prof", shell=True)
         
-        cProfile.run("main(args)", "cProfile-output.prof")
-        subprocess.run("snakeviz cProfile-output.prof", shell=True)
+    #     cProfile.run("main(args)", "cProfile-output.prof")
+    #     subprocess.run("snakeviz cProfile-output.prof", shell=True)
         
-    else:
-        main(args)
+    # else:
+    #     main(args)
+    main(args)

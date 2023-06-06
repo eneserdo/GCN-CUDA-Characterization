@@ -9,8 +9,9 @@ import numpy as np
 import torch
 from torch_geometric.data import Data, Dataset, download_url, extract_zip
 import torch_geometric.nn as geometric_nn
-from torch_geometric.utils import to_dense_adj, degree
+from torch_geometric.utils import to_dense_adj, degree, add_self_loops
 import matplotlib.pyplot as plt
+import networkx as nx
 
 
 def get_random_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
@@ -28,21 +29,30 @@ def get_random_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
 def get_random_skewed_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
     """ Not fully tested yet """
 
-    graph = torch.zeros((N, N))
     x=torch.rand((N, num_feat))
     y=torch.randint(0, num_classes, (1,1))
     
-    order=torch.randperm(N)
-    K=int(sparsity*N*N)
+    # order=torch.randperm(N)
+    # K=int(sparsity*N*N)
     
-    src=torch.randn((K))*(N**(0.5))
-    src=torch.abs(src)
-    src=torch.round(src).type(torch.long)
-    dst=torch.randint(0, N, (K, 1))
+    # src=torch.randn((K))*(N**(0.5))
+    # src=torch.abs(src)
+    # src=torch.round(src).type(torch.long)
+    # dst=torch.randint(0, N, (K, 1)).reshape(K)
     
-    edge_index=torch.stack([order[src], dst])
+    # edge_index=torch.stack([order[src], dst])
 
-    data=Data(x=x, edge_index=edge_index, y=y)
+    # data=Data(x=x, edge_index=edge_index, y=y)
+
+    avg_degree=int(2 * sparsity * (N - 1))
+    graph = nx.barabasi_albert_graph(N, avg_degree)
+    # graph = nx.generators.random_graphs.powerlaw_cluster_graph(N, int(sparsity * N), 0.05)
+    
+    edge_index = torch.tensor(list(graph.edges)).t().contiguous()
+    edge_index, _ = add_self_loops(edge_index)
+
+    data = Data(x=x, edge_index=edge_index, y=y)
+
     data.validate()
     return data
 
@@ -50,22 +60,36 @@ def get_minutes(elapsed):
     return f"{round((elapsed)//60)}.{round((elapsed)%60)}"
 
 
+def get_unique_path(path):
+    filename, extension = os.path.splitext(path)
+    counter = 1
 
-def get_node_degree_dist(data: Data, N):
+    while os.path.exists(path):
+        path = filename +"_" + str(counter) + extension
+        counter += 1
+
+    return path
+
+def save_node_degree_dist(data: Data, N, data_name):
     """ Not fully tested yet """
 
     degrees=[]
-    for i in range(N):
-        degrees.append(degree(data.edge_index[i], data.num_nodes))
+    # for i in range(N):
+        # degrees.append(degree(data.edge_index[0], data.num_nodes))
+    degrees=degree(data.edge_index[0], data.num_nodes)
+    plt.figure()
+    plt.hist(degrees)
+    plt.show()
+    plt.savefig(get_unique_path(data_name+str(N) +".png"))
 
-    plt.plot(degrees)
-    plt.plot()
 
-
-def save_graph_img(data: Data, N):
+def save_graph_img(data: Data, N, data_name):
     """ Not fully tested yet """
 
     mat=to_dense_adj(data.edge_index, data.batch)
-    plt.imshow(mat)
+    plt.figure()
+    plt.imshow(mat[0], cmap="gray", vmin=0, vmax=1)
     plt.show()
-    get_node_degree_dist(data, N)
+    plt.savefig(get_unique_path(data_name+str(N) +".png"))
+
+

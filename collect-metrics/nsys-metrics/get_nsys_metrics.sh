@@ -1,12 +1,13 @@
 #!/bin/bash
 
-for num_nodes in 16 32 64
+for num_nodes in 16 256 4096 18384
 do 
     mkdir exp_nn$num_nodes
     sudo nsys profile -w false -t cuda,nvtx,cublas,cublas-verbose,cusparse,cusparse-verbose,cudnn --stats=true --capture-range=cudaProfilerApi -o exp_nn$num_nodes/prof_nn$num_nodes ../../main.py -n $num_nodes > /dev/null
     sudo nsys stats -f csv --report nvtx_sum,cuda_gpu_kern_sum,cuda_api_sum --output exp_nn$num_nodes/stats_nn$num_nodes exp_nn$num_nodes/prof_nn$num_nodes.sqlite > /dev/null
     echo exp_nn$num_nodes done!
 done
+
 
 echo all done!
 
