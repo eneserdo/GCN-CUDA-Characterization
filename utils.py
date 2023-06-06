@@ -79,7 +79,7 @@ def save_node_degree_dist(data: Data, N, data_name):
     degrees=degree(data.edge_index[0], data.num_nodes)
     plt.figure()
     plt.hist(degrees)
-    plt.show()
+    # plt.show()
     plt.savefig(get_unique_path(data_name+str(N) +".png"))
 
 
@@ -89,7 +89,7 @@ def save_graph_img(data: Data, N, data_name):
     mat=to_dense_adj(data.edge_index, data.batch)
     plt.figure()
     plt.imshow(mat[0], cmap="gray", vmin=0, vmax=1)
-    plt.show()
+    # plt.show()
     plt.savefig(get_unique_path(data_name+str(N) +".png"))
 
 

@@ -27,7 +27,7 @@ NUM_EPOCH = 1
 NUM_BATCH = 15
 NUM_NODES_TIMES_BATCH_SIZE = 2**16 # = num_nodes * batch_size. In every iteration this much data is loaded into memory
 NUM_CLASSES = 10
-NUM_FEAT = 128
+NUM_FEAT = 64
 # DATASET_LEN = NUM_BATCH*BATCH_SIZE (will be declared later)
 
 NUM_OF_WARMUP_ITER=5
@@ -38,7 +38,7 @@ NUM_OF_WARMUP_ITER=5
         16 - 4096
         256 - 256
         4096 - 16
-        18384 - 4
+        16384 - 4
 """
 
 print("python:", sys.executable)
@@ -88,8 +88,9 @@ def train_one_epoch(
     return loss
 
 def main(args):
-    
-    batch_size = args.batch_size if args.batch_size != -1 else int(NUM_NODES_TIMES_BATCH_SIZE / args.num_nodes)
+
+    # batch_size = args.batch_size if args.batch_size != -1 else int(NUM_NODES_TIMES_BATCH_SIZE / args.num_nodes)    
+    batch_size = int(NUM_NODES_TIMES_BATCH_SIZE / args.num_nodes)
     DATASET_LEN = batch_size*NUM_BATCH
 
     # Set seeds
@@ -152,7 +153,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", "--num_nodes", type=int, default=2**4, help="...")
-    parser.add_argument("-bs", "--batch_size", type=int, default=-1, help="...")
+    # parser.add_argument("-bs", "--batch_size", type=int, default=-1, help="...")
     parser.add_argument("--num_workers", type=int, default=1, help="...")
     parser.add_argument("--sparsity", type=float, default=0.3, help="...")
     parser.add_argument("-s", "--skewed", action="store_true", help="...")

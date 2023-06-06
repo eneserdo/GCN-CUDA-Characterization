@@ -63,7 +63,7 @@ def save_nvtx_figure():
     plt.xticks([r + bar_width for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
 
     plt.legend()
-    plt.show()
+    #plt.show()
 
     plt.savefig("asd.png")
 
