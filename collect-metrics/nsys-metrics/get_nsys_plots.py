@@ -5,11 +5,10 @@ import numpy as np
 
 
 def save_nvtx_figure():
-    # for file_name in ["nvtx_sum", "cuda_gpu_kern_sum", "cuda_api_sum"]:
 
     normalize={}
-    propagate={}
     linear={}
+    propagate={}
 
     file_name="nvtx_sum"
 
@@ -22,29 +21,18 @@ def save_nvtx_figure():
         # csv = pd.read_csv(os.path.join(f"exp_nn{num_nodes}", f"stats_nn{num_nodes}_{file_name}.csv"))
         csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
 
-        # read avg (ns)
-
         avg=csv["Avg (ns)"].to_list()
         Range=csv["Range"].to_list()
         
         normalize[exp]=avg[Range.index("Normalize")]
-        propagate[exp]=avg[Range.index("Propagate")]
         linear[exp]=avg[Range.index("Linear")]
-    
-
-    # fcn=col_names[0]
-    # for cn in col_names:
-    #     assert 
-
-
-    data_nn={exp:[normalize[exp], propagate[exp], linear[exp]] for exp in experiments if exp.startswith("exp_nn")}
-    data_data_irregular={exp:[normalize[exp], propagate[exp], linear[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+        propagate[exp]=avg[Range.index("Propagate")]
     
 
 
-    # for i in range(num_exp):
-    #     plt.bar(range(3), normalize[i, :], width, color='royalblue')
-
+    data_nn={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if exp.startswith("exp_nn")}
+    data_data_irregular={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+    
 
     # Extract the experiments and values
     experiments = list(data_nn.keys())
@@ -70,26 +58,12 @@ def save_nvtx_figure():
         # plt.xticks([r + i*bar_width], [f'Metric {i}'])
 
 
-    # Add xticks and labels
-    # plt.xlabel('Metric')
-    plt.ylabel('millisecond')
+
+    plt.ylabel('nanoseconds')
     plt.xticks([r + bar_width for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
 
-    # Add a legend
     plt.legend()
-
-    # Show the plot
     plt.show()
-
-    # add some
-    # plt.set_ylabel('Scores')
-    # plt.set_title('Scores by group and gender')
-    # plt.set_xticks(ind + width / 2)
-    # ax.set_xticklabels( ('G1', 'G2', 'G3', 'G4', 'G5') )
-
-    # ax.legend( (rects1[0], rects2[0]), ('Men', 'Women') )
-
-    # plt.show()
 
     plt.savefig("asd.png")
 
