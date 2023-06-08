@@ -2,7 +2,7 @@ __pycache__/
 .vscode/
 *.png
 *.prof
-deneme.sh
+deneme*
 *.sqlite
 *.nsys-rep
 *.csv

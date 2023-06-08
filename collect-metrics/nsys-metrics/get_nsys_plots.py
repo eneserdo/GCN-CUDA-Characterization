@@ -31,7 +31,7 @@ def save_nvtx_figure():
 
 
     data_nn={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if exp.startswith("exp_nn")}
-    data_data_irregular={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+    data_skewed={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
     
 
     # Extract the experiments and values
@@ -100,7 +100,7 @@ def save_kernel_figure():
 
 
     data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments if exp.startswith("exp_nn")}
-    # data_data_irregular={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+    data_skewed={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
     
 
     # Extract the experiments and values

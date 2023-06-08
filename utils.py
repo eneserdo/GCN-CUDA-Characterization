@@ -26,35 +26,24 @@ def get_random_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
     return data
 
 
-def get_random_skewed_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
-    """ Not fully tested yet """
-
+def get_random_barabasi_albert_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
+    avg_degree=int(N * sparsity)
+    G = nx.barabasi_albert_graph(N, avg_degree)
+    
+    
+    A=nx.to_numpy_array(G)
+    
+    permuated_list=np.random.permutation(N)
+    A_permuted=nx.to_numpy_array(G, nodelist=permuated_list)
+    A=torch.from_numpy(A)
+    
+    xs, ys = torch.where(A)
+    edge_index=torch.stack([xs, ys])
     x=torch.rand((N, num_feat))
     y=torch.randint(0, num_classes, (1,1))
-    
-    # order=torch.randperm(N)
-    # K=int(sparsity*N*N)
-    
-    # src=torch.randn((K))*(N**(0.5))
-    # src=torch.abs(src)
-    # src=torch.round(src).type(torch.long)
-    # dst=torch.randint(0, N, (K, 1)).reshape(K)
-    
-    # edge_index=torch.stack([order[src], dst])
-
-    # data=Data(x=x, edge_index=edge_index, y=y)
-
-    avg_degree=int(2 * sparsity * (N - 1))
-    graph = nx.barabasi_albert_graph(N, avg_degree)
-    # graph = nx.generators.random_graphs.powerlaw_cluster_graph(N, int(sparsity * N), 0.05)
-    
-    edge_index = torch.tensor(list(graph.edges)).t().contiguous()
-    edge_index, _ = add_self_loops(edge_index)
-
-    data = Data(x=x, edge_index=edge_index, y=y)
-
-    data.validate()
+    data=Data(x=x, edge_index=edge_index, y=y)
     return data
+
 
 def get_minutes(elapsed):
     return f"{round((elapsed)//60)}.{round((elapsed)%60)}"
@@ -71,7 +60,6 @@ def get_unique_path(path):
     return path
 
 def save_node_degree_dist(data: Data, N, data_name):
-    """ Not fully tested yet """
 
     degrees=[]
     # for i in range(N):

@@ -21,27 +21,27 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 from model import GCN_Model
-from utils import get_minutes, get_random_graph, get_random_skewed_graph, save_graph_img, save_node_degree_dist
+from utils import get_minutes, get_random_graph, get_random_barabasi_albert_graph, save_graph_img, save_node_degree_dist
 
 NUM_EPOCH = 1
 NUM_BATCH = 15
 NUM_NODES_TIMES_BATCH_SIZE = 2**16 # = num_nodes * batch_size. In every iteration this much data is loaded into memory
 NUM_CLASSES = 10
 NUM_FEAT = 64
-# DATASET_LEN = NUM_BATCH*BATCH_SIZE (will be declared later)
-
 NUM_OF_WARMUP_ITER=5
+# DATASET_LEN = NUM_BATCH*batch_size (will be declared later)
+
 
 """
     # Effect of graph size:
         Training configs (Number of nodes, Batch size):
         16 - 4096
+        64 - 1024
         256 - 256
+        1024 - 64 
         4096 - 16
-        16384 - 4
 """
 
-print("python:", sys.executable)
 
 def train_one_epoch(
     model: GCN_Model,
@@ -50,7 +50,6 @@ def train_one_epoch(
     optimizer,
     device,
 ):
-    """ This was written as a separate function just for convenience during cpu profiling. """
 
     loss=0
     i=0
@@ -92,6 +91,7 @@ def main(args):
     # batch_size = args.batch_size if args.batch_size != -1 else int(NUM_NODES_TIMES_BATCH_SIZE / args.num_nodes)    
     batch_size = int(NUM_NODES_TIMES_BATCH_SIZE / args.num_nodes)
     DATASET_LEN = batch_size*NUM_BATCH
+    print("BS:", batch_size, "- NN:", args.num_nodes, "- DL:", DATASET_LEN)
 
     # Set seeds
     random.seed(args.seed)
@@ -109,8 +109,7 @@ def main(args):
     dataset = []
     
     # Select function: skewed or not   
-    get_graph = get_random_skewed_graph if args.skewed else get_random_graph
-
+    get_graph = get_random_barabasi_albert_graph if args.skewed else get_random_graph
     is_skewed="S_" if args.skewed else ""
 
     for i in range(DATASET_LEN):
@@ -129,7 +128,7 @@ def main(args):
     criterion = CrossEntropyLoss()
 
     # Inference
-    print("Starts...")
+    print("Starts...", flush=True)
     for epoch in range(NUM_EPOCH):
         start = time.perf_counter()
 
@@ -145,20 +144,21 @@ def main(args):
 
     if args.use_cpu:
         print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
-    print("Done!")    
+    print("Done!")
 
 
 if __name__ == "__main__":
+    # print("python:", sys.executable)
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("-n", "--num_nodes", type=int, default=2**4, help="...")
     # parser.add_argument("-bs", "--batch_size", type=int, default=-1, help="...")
     parser.add_argument("--num_workers", type=int, default=1, help="...")
-    parser.add_argument("--sparsity", type=float, default=0.3, help="...")
+    parser.add_argument("--sparsity", type=float, default=0.1, help="...")
     parser.add_argument("-s", "--skewed", action="store_true", help="...")
     parser.add_argument("-cpu", "--use_cpu", action="store_true", help="...")
-    parser.add_argument("-p", "--cprofile", action="store_true", help="...")
+    # parser.add_argument("-p", "--cprofile", action="store_true", help="...")
     parser.add_argument("--seed", type=int, default=34, help="...")
 
     args = parser.parse_args()
