@@ -30,7 +30,6 @@ def get_random_barabasi_albert_graph(N: int, sparsity: float, num_classes: int, 
     avg_degree=int(N * sparsity)
     G = nx.barabasi_albert_graph(N, avg_degree)
     
-    
     A=nx.to_numpy_array(G)
     
     permuated_list=np.random.permutation(N)
@@ -67,7 +66,8 @@ def save_node_degree_dist(data: Data, N, data_name):
     degrees=degree(data.edge_index[0], data.num_nodes)
     plt.figure()
     
-    plt.hist(degrees, N//2)
+    
+    plt.hist(degrees, 128)
     # plt.show()
     plt.savefig(get_unique_path(data_name+str(N) +".png"))
 

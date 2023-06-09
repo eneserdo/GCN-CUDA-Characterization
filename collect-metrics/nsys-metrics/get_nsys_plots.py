@@ -110,7 +110,7 @@ def save_kernel_figure(experiments, save_name):
 
 
     data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments}
-    print(save_name,"\n" ,data_nn, "\n")
+    print(save_name,"\n" , data_nn, "\n")
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())

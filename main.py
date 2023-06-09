@@ -115,7 +115,7 @@ def main(args):
     for i in range(DATASET_LEN):
         data = get_graph(args.num_nodes, args.sparsity, NUM_CLASSES, NUM_FEAT)
         dataset.append(data)
-        if i==10:
+        if i==10 and args.num_nodes==1024:
             save_graph_img(data, args.num_nodes, is_skewed+"node_degree_hist_N")
             save_node_degree_dist(data, args.num_nodes, is_skewed+"graph_N")
             print("Saved sample!")
