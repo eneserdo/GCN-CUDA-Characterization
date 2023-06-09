@@ -4,21 +4,22 @@ import pandas as pd
 import numpy as np
 from natsort import natsorted
 
-def save_nvtx_figure():
-
+def save_nvtx_figure(experiments, save_name):
+    """
+        Very specific function that saves the execution times of 'Normalization', 'Linear', 
+        'Propagation' nvtx ranges
+    """
     normalize={}
     linear={}
     propagate={}
 
     file_name="nvtx_sum"
 
-    experiments=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_")]
     num_exp=len(experiments)
 
     experiments=natsorted(experiments)
 
     for exp in experiments:
-        # csv = pd.read_csv(os.path.join(f"exp_nn{num_nodes}", f"stats_nn{num_nodes}_{file_name}.csv"))
         csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
 
         avg=csv["Avg (ns)"].to_list()
@@ -30,10 +31,8 @@ def save_nvtx_figure():
     
 
 
-    data_nn={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if exp.startswith("exp_nn")}
-    data_skewed={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+    data_nn={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments}
     
-
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())
@@ -63,17 +62,15 @@ def save_nvtx_figure():
     plt.xticks([r + bar_width for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
 
     plt.legend()
-    #plt.show()
 
-    plt.savefig("nvtx_execution_times.png")
+    plt.savefig(f"{save_name}.png")
 
-def save_kernel_figure():
+def save_kernel_figure(experiments, save_name):
     index_select={}
     scatter={}
 
     file_name="cuda_gpu_kern_sum"
 
-    experiments=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_")]
     num_exp=len(experiments)
 
     experiments=natsorted(experiments)
@@ -99,10 +96,8 @@ def save_kernel_figure():
     
 
 
-    data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments if exp.startswith("exp_nn")}
-    data_skewed={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments if not exp.startswith("exp_nn")}
+    data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments}
     
-
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())
@@ -139,8 +134,18 @@ def save_kernel_figure():
 
 
 if __name__ == '__main__':
-    save_nvtx_figure()
-    save_kernel_figure()
+    
+    # NVTX
+    experiments_names=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_nn")]
+    save_nvtx_figure(experiments_names, "nvtx_exec_times_nn")
+
+    save_nvtx_figure(["exp_nn1024", "exp_skewed1024"], "nvtx_exec_times_s1024")
+
+    # Kernels
+    experiments_names=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_nn")]
+    save_kernel_figure(experiments_names, "kernel_exec_times_nn")
+
+    save_kernel_figure(["exp_nn1024", "exp_skewed1024"], "kernel_exec_times_s1024")
 
 
 
