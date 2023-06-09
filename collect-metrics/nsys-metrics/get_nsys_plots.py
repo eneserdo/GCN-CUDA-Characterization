@@ -32,8 +32,9 @@ def save_nvtx_figure(experiments, save_name):
     
 
 
+
     data_nn={exp:[normalize[exp], linear[exp], propagate[exp]] for exp in experiments}
-    
+    print(save_name,"\n" ,data_nn, "\n")
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())
@@ -52,6 +53,8 @@ def save_nvtx_figure(experiments, save_name):
     # plt.bar(r3, values[2], color='b', width=bar_width, edgecolor='white', label=experiments[2])
 
     # r = 
+
+    plt.figure()
     for i in range(num_exp):
         r=[x + i*bar_width for x in range(3)]
         plt.bar(r, values[i], width=bar_width, edgecolor='white', label=experiments[i])
@@ -98,7 +101,7 @@ def save_kernel_figure(experiments, save_name):
 
 
     data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments}
-
+    print(save_name,"\n" ,data_nn, "\n")
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())
@@ -129,9 +132,8 @@ def save_kernel_figure(experiments, save_name):
     plt.xticks([r + bar_width for r in range(len(values[0]))], ['scatter', 'indexSelect'])
 
     plt.legend()
-    #plt.show()
 
-    plt.savefig("kernel_execution_times.png")
+    plt.savefig(f"{save_name}.png")
 
 
 if __name__ == '__main__':
