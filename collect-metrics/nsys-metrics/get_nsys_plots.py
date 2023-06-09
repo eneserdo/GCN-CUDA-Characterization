@@ -55,6 +55,7 @@ def save_nvtx_figure(experiments, save_name):
     # r = 
 
     plt.figure()
+    plt.grid(alpha=0.2)
     for i in range(num_exp):
         r=[x + i*bar_width for x in range(3)]
         plt.bar(r, values[i], width=bar_width, edgecolor='white', label=experiments[i])
@@ -63,7 +64,7 @@ def save_nvtx_figure(experiments, save_name):
 
 
     plt.ylabel('nanoseconds')
-    plt.xticks([r + bar_width for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
+    plt.xticks([r + num_exp*bar_width/2 for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
 
     plt.legend()
 
@@ -121,6 +122,7 @@ def save_kernel_figure(experiments, save_name):
 
     # r = 
     plt.figure()
+    plt.grid(alpha=0.2)
     for i in range(num_exp):
         r=[x + i*bar_width for x in range(2)]
         plt.bar(r, values[i], width=bar_width, edgecolor='white', label=experiments[i])
@@ -129,7 +131,7 @@ def save_kernel_figure(experiments, save_name):
 
 
     plt.ylabel('nanoseconds')
-    plt.xticks([r + bar_width for r in range(len(values[0]))], ['scatter', 'indexSelect'])
+    plt.xticks([r + num_exp*bar_width/2 for r in range(len(values[0]))], ['scatter', 'indexSelect'])
 
     plt.legend()
 
