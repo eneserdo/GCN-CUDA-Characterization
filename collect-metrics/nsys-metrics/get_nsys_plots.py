@@ -20,7 +20,8 @@ def save_nvtx_figure(experiments, save_name):
     experiments=natsorted(experiments)
 
     for exp in experiments:
-        csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
+        # csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
+        csv = pd.read_csv(os.path.join(exp, f"stats_{exp[4:]}_{file_name}.csv"))
 
         avg=csv["Avg (ns)"].to_list()
         Range=csv["Range"].to_list()
@@ -76,8 +77,8 @@ def save_kernel_figure(experiments, save_name):
     experiments=natsorted(experiments)
 
     for exp in experiments:
-        # csv = pd.read_csv(os.path.join(f"exp_nn{num_nodes}", f"stats_nn{num_nodes}_{file_name}.csv"))
-        csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
+        # csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
+        csv = pd.read_csv(os.path.join(exp, f"stats_{exp[4:]}_{file_name}.csv"))
 
         avg=csv["Avg (ns)"].to_list()
         Name=csv["Name"].to_list()
@@ -97,7 +98,7 @@ def save_kernel_figure(experiments, save_name):
 
 
     data_nn={exp:[scatter[exp], index_select[exp]] for exp in experiments}
-    
+
     # Extract the experiments and values
     experiments = list(data_nn.keys())
     values = list(data_nn.values())
