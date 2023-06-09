@@ -137,13 +137,13 @@ def save_kernel_figure(experiments, save_name):
 if __name__ == '__main__':
     
     # NVTX
-    experiments_names=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_nn")]
+    experiments_names=[e for e in os.listdir(".") if e.startswith("exp_nn")]
     save_nvtx_figure(experiments_names, "nvtx_exec_times_nn")
 
     save_nvtx_figure(["exp_nn1024", "exp_skewed1024"], "nvtx_exec_times_s1024")
 
     # Kernels
-    experiments_names=[e for e in os.listdir(os.path.join("collect-metrics", "nsys-metrics")) if e.startswith("exp_nn")]
+    experiments_names=[e for e in os.listdir(".") if e.startswith("exp_nn")]
     save_kernel_figure(experiments_names, "kernel_exec_times_nn")
 
     save_kernel_figure(["exp_nn1024", "exp_skewed1024"], "kernel_exec_times_s1024")
