@@ -67,7 +67,7 @@ def save_node_degree_dist(data: Data, N, data_name):
     plt.figure()
     
     
-    plt.hist(degrees, 128)
+    plt.hist(degrees, 64)
     # plt.show()
     plt.savefig(get_unique_path(data_name+str(N) +".png"))
 
