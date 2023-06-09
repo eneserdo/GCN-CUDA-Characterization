@@ -22,8 +22,10 @@ def save_nvtx_figure(experiments, save_name):
     for exp in experiments:
         # csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
         csv = pd.read_csv(os.path.join(exp, f"stats_{exp[4:]}_{file_name}.csv"))
-
-        avg=csv["Avg (ns)"].to_list()
+        
+        count=csv["Instances"].to_list()[0]
+        avg=csv["Avg (ns)"].to_numpy()/1000/1000/count
+        avg=avg.tolist()
         Range=csv["Range"].to_list()
         
         normalize[exp]=avg[Range.index("Normalize")]
@@ -40,7 +42,7 @@ def save_nvtx_figure(experiments, save_name):
     values = list(data_nn.values())
 
     # Set the width of the bars
-    bar_width = 0.2
+    bar_width = 0.15
 
     # # Set the positions of the bars on the x-axis
     # r1 = range(len(values[0]))
@@ -54,8 +56,10 @@ def save_nvtx_figure(experiments, save_name):
 
     # r = 
 
-    plt.figure()
+    plt.figure(figsize=(6, 6))
     plt.grid(alpha=0.2)
+
+    
     for i in range(num_exp):
         r=[x + i*bar_width for x in range(3)]
         plt.bar(r, values[i], width=bar_width, edgecolor='white', label=experiments[i])
@@ -63,10 +67,12 @@ def save_nvtx_figure(experiments, save_name):
 
 
 
-    plt.ylabel('nanoseconds')
-    plt.xticks([r + num_exp*bar_width/2 for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
+    plt.ylabel('seconds')
+    plt.xticks([r + (num_exp-1)*bar_width/2 for r in range(len(values[0]))], ['Normalization', 'Linear', 'Propagation'])
+    plt.yticks()
 
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig(f"{save_name}.png")
 
@@ -84,7 +90,9 @@ def save_kernel_figure(experiments, save_name):
         # csv = pd.read_csv(os.path.join("collect-metrics", "nsys-metrics", exp, f"stats_{exp[4:]}_{file_name}.csv"))
         csv = pd.read_csv(os.path.join(exp, f"stats_{exp[4:]}_{file_name}.csv"))
 
-        avg=csv["Avg (ns)"].to_list()
+        count=csv["Instances"].to_list()[0]
+        avg=csv["Avg (ns)"].to_numpy()/1000/1000/count
+        avg=avg.tolist()
         Name=csv["Name"].to_list()
         
         for i, n in enumerate(Name):
@@ -108,7 +116,7 @@ def save_kernel_figure(experiments, save_name):
     values = list(data_nn.values())
 
     # Set the width of the bars
-    bar_width = 0.2
+    bar_width = 0.15
 
     # # Set the positions of the bars on the x-axis
     # r1 = range(len(values[0]))
@@ -121,8 +129,8 @@ def save_kernel_figure(experiments, save_name):
     # plt.bar(r3, values[2], color='b', width=bar_width, edgecolor='white', label=experiments[2])
 
     # r = 
-    plt.figure()
-    plt.grid(alpha=0.2)
+    plt.figure(figsize=(6, 6))
+    plt.grid(alpha=0.2, markevery=0.25)
     for i in range(num_exp):
         r=[x + i*bar_width for x in range(2)]
         plt.bar(r, values[i], width=bar_width, edgecolor='white', label=experiments[i])
@@ -130,10 +138,11 @@ def save_kernel_figure(experiments, save_name):
 
 
 
-    plt.ylabel('nanoseconds')
-    plt.xticks([r + num_exp*bar_width/2 for r in range(len(values[0]))], ['scatter', 'indexSelect'])
+    plt.ylabel('seconds')
+    plt.xticks([r + (num_exp-1)*bar_width/2 for r in range(len(values[0]))], ['scatter', 'indexSelect'])
 
     plt.legend()
+    plt.tight_layout()
 
     plt.savefig(f"{save_name}.png")
 
