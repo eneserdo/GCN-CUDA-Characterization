@@ -35,9 +35,9 @@ def get_random_barabasi_albert_graph(N: int, sparsity: float, num_classes: int, 
     
     permuated_list=np.random.permutation(N)
     A_permuted=nx.to_numpy_array(G, nodelist=permuated_list)
-    A=torch.from_numpy(A)
+    A_permuted=torch.from_numpy(A_permuted)
     
-    xs, ys = torch.where(A)
+    xs, ys = torch.where(A_permuted)
     edge_index=torch.stack([xs, ys])
     x=torch.rand((N, num_feat))
     y=torch.randint(0, num_classes, (1,1))
