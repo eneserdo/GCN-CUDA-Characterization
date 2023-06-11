@@ -4,10 +4,12 @@
 sudo /usr/local/cuda/bin/ncu --metrics sm__warps_active.avg.pct_of_peak_sustained_active --kernel-name regex:.*sgemm_32.* ./main.py
 ncu --list-section
 
+/opt/nvidia/nsight-compute/2023.1.0/target/linux-desktop-glibc_2_11_3-x64/ncu --config-file off --export /root/Documents --force-overwrite --set full --nvtx main.py -n 16
+
 ## Nsight System:
 
 sudo nsys profile -t cuda,nvtx --force-overwrite=true --stats=true -o /home/ai/enes/sample.qdrep /home/ai/enes/GCN-CUDA-Characterization/main.py
-
+    
 nsys stats --help-reports
 sudo nsys stats -f column --report nvtx_sum,cuda_gpu_kern_sum --output /home/ai/enes/sample_stat /home/ai/enes/sample.sqlite
 cat sample_stat_cuda_gpu_kern_sum.txt

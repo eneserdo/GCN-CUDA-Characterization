@@ -27,7 +27,7 @@ def get_random_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
 
 
 def get_random_barabasi_albert_graph(N: int, sparsity: float, num_classes: int, num_feat: int):
-    avg_degree=int(N * sparsity)
+    avg_degree=int(N * sparsity / 2)
     G = nx.barabasi_albert_graph(N, avg_degree)
     
     A=nx.to_numpy_array(G)
